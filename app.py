@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, request
 from src.endpoints.spelling_checker import SpellingChecker
+from src.utils.matcher import NLP, SimpleMatcher
 
 app= Flask(__name__)
 
@@ -25,8 +26,11 @@ def passive_voice_checker():
 
 @app.route("/null_subject", methods=["POST"])
 def null_subject_checker():
+    doc = NLP(request.get_json()["data"])
+    subjects = [token.text for token in doc if token.dep_ == "nsubj"]
     return jsonify(
-        {"Warn": "impelementar"}
+        {'has_null_subject': True if subjects == [] else False, 
+        'subjects': subjects}
     )
 
 if __name__=='__main__':
