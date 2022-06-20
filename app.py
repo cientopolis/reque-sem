@@ -33,6 +33,27 @@ def null_subject_checker():
         'subjects': subjects}
     )
 
+@app.route("/one_verb", methods=["POST"])
+def one_verb_checker():
+    doc = NLP(request.get_json()["data"])
+    verbs = [token.text for token in doc if token.pos_ == "VERB"] 
+    return jsonify(
+        {'has_one_verb': True if len(verbs) == 1 else False, 
+        'verbs': verbs
+        }
+    )
+
+@app.route("/adj_and_adv", methods=["POST"])
+def adjectives_and_adverbs_checker():
+    doc = NLP(request.get_json()["data"])
+    adjectives = [token.text for token in doc if token.pos_ == "ADJ"]
+    adverbs = [token.text for token in doc if token.pos_ == "ADV"]
+    return jsonify(
+        {'adjectives': adjectives,
+        'adverbs' : adverbs
+        }
+    )
+
 if __name__=='__main__':
     app.run()
     
