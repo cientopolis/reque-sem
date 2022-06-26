@@ -1,6 +1,6 @@
 from flask import Flask, jsonify, request
-from src.endpoints.spelling_checker import SpellingChecker
-from src.utils.matcher import NLP, SimpleMatcher
+from src.utils.matcher import NLP
+import contextualSpellCheck
 
 app= Flask(__name__)
 
@@ -10,10 +10,12 @@ def hello_world():
 
 @app.route("/spelling", methods=["POST"])
 def spelling_checker():
-    checker = SpellingChecker(request.get_json()["data"])
+    contextualSpellCheck.add_to_pipe(NLP)
+    doc = NLP(request.get_json()["data"])
     return jsonify(
         {
-            "result": checker.check()
+            "performed_spell_check": doc._.performed_spellCheck,
+            "result": doc._.outcome_spellCheck
         }
     )
 
