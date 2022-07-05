@@ -15,7 +15,8 @@ def spelling_checker():
     return jsonify(
         {
             "performed_spell_check": doc._.performed_spellCheck,
-            "result": doc._.outcome_spellCheck
+            "result": doc._.outcome_spellCheck,
+            "errors": str(doc._.suggestions_spellCheck)
         }
     )
 
