@@ -22,10 +22,46 @@ def spelling_checker():
 
 @app.route("/passive_voice", methods=["POST"])
 def passive_voice_checker():
-    
+    matcher = Matcher(nlp.vocab)
+    pattern = [{"DEP": "auxpass"}, {"DEP": {"IN": ["neg", "advmod"]}, "OP": "*"}, {"DEP": "ROOT"}]
+    matcher.add("PASSIVE VOICE", [pattern])
+    pattern = [{"DEP": "agent"}, {"DEP": {"IN": ["det", "amod", "compound"]}, "OP": "*"}, {"DEP": "pobj"}]
+    matcher.add("AGENT OF PASSIVE", [pattern])
+    pattern = [{"DEP": {"IN": ["det", "amod", "compound"]}, "OP": "*"}, {"DEP": "nsubj"}]
+    matcher.add("AGENT OF ACTIVE", [pattern])
+
+    def findPassives(doc):
+        result = ""
+        if len([token.text for token in doc if token.dep_ == "auxpass"]) >= 1:
+            matches = matcher(doc)
+            for match_id, start, end in matches:
+                string_id = nlp.vocab.strings[match_id]
+                if (string_id == "PASSIVE VOICE"):
+                    span = doc[start:end]
+                    result = span.text
+        return result
+
+    def findAgent(passive, doc):
+        result = ""
+        matches = matcher(doc)
+        for match_id, start, end in matches:
+            string_id = nlp.vocab.strings[match_id]
+            if (string_id == "AGENT OF PASSIVE" or string_id == "AGENT OF ACTIVE"):
+                span = doc[start:end]
+                result = span.text
+        return result
+
+    doc = NLP(request.get_json()["data"])
+    passive = findPassives(doc)
+    agent = findAgent(passive, doc)
     return jsonify(
-        {"Warn": "impelementar"}
-    )
+            {
+            'has_passive_voice': True if passive != "" else False,
+            'passive_verb:': passive,
+            'has_agent': True if agent != "" else False,
+            'agent': agent
+            }
+        )
 
 @app.route("/null_subject", methods=["POST"])
 def null_subject_checker():
