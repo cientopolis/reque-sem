@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, request
 from src.utils.matcher import NLP
 import contextualSpellCheck
+from spacy.matcher import Matcher
 
 app= Flask(__name__)
 
@@ -23,7 +24,7 @@ def spelling_checker():
 
 @app.route("/passive_voice", methods=["POST"])
 def passive_voice_checker():
-    matcher = Matcher(nlp.vocab)
+    matcher = Matcher(NLP.vocab)
     pattern = [{"DEP": "auxpass"}, {"DEP": {"IN": ["neg", "advmod"]}, "OP": "*"}, {"DEP": "ROOT"}]
     matcher.add("PASSIVE VOICE", [pattern])
     pattern = [{"DEP": "agent"}, {"DEP": {"IN": ["det", "amod", "compound"]}, "OP": "*"}, {"DEP": "pobj"}]
@@ -36,7 +37,7 @@ def passive_voice_checker():
         if len([token.text for token in doc if token.dep_ == "auxpass"]) >= 1:
             matches = matcher(doc)
             for match_id, start, end in matches:
-                string_id = nlp.vocab.strings[match_id]
+                string_id = NLP.vocab.strings[match_id]
                 if (string_id == "PASSIVE VOICE"):
                     span = doc[start:end]
                     result = span.text
@@ -46,7 +47,7 @@ def passive_voice_checker():
         result = ""
         matches = matcher(doc)
         for match_id, start, end in matches:
-            string_id = nlp.vocab.strings[match_id]
+            string_id = NLP.vocab.strings[match_id]
             if (string_id == "AGENT OF PASSIVE" or string_id == "AGENT OF ACTIVE"):
                 span = doc[start:end]
                 result = span.text
