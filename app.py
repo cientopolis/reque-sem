@@ -12,6 +12,7 @@ def hello_world():
 def spelling_checker():
     contextualSpellCheck.add_to_pipe(NLP)
     doc = NLP(request.get_json()["data"])
+    NLP.remove_pipe("contextual spellchecker")
     return jsonify(
         {
             "performed_spell_check": doc._.performed_spellCheck,
