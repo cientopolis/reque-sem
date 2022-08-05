@@ -5,12 +5,21 @@ from spacy.matcher import Matcher
 def spelling_checker(data):
     contextualSpellCheck.add_to_pipe(NLP)
     doc = NLP(data)
+    check = []
+    for token in doc:
+        if token._.get_require_spellCheck:
+            check.append({
+                "Razon": "Misspelling",
+                "Palabra": str(token),
+                "OP1": [
+                    "Reemplazar",
+                    str(token._.get_suggestion_spellCheck),
+                    data.find(str(token)),                      #revisar despues
+                    data.find(str(token)) + len(str(token))     #revisar despues
+                ]
+            })
     NLP.remove_pipe("contextual spellchecker")
-    return {
-        "performed_spell_check": doc._.performed_spellCheck,
-        "result": doc._.outcome_spellCheck,
-        "errors": str(doc._.suggestions_spellCheck)
-    }
+    return check
 
 def passive_voice(data):
     matcher = Matcher(NLP.vocab)
