@@ -6,6 +6,7 @@ def spelling_checker(data):
     contextualSpellCheck.add_to_pipe(NLP)
     doc = NLP(data)
     check = []
+    pos = 1
     for token in doc:
         if token._.get_require_spellCheck:
             check.append({
@@ -14,10 +15,11 @@ def spelling_checker(data):
                 "OP1": [
                     "Reemplazar",
                     str(token._.get_suggestion_spellCheck),
-                    data.find(str(token)),                      #revisar despues
-                    data.find(str(token)) + len(str(token))     #revisar despues
+                    pos,
+                    pos + len(str(token))
                 ]
             })
+        pos += len(str(token))
     NLP.remove_pipe("contextual spellchecker")
     return check
 
