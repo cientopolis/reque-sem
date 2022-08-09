@@ -101,11 +101,11 @@ def adjectives_and_adverbs(data):
             if elem in adjectives:
                 regla["Razon"]="Es un adjetivo"
                 regla["OP1"]= ["Eliminar"," ",id, id+1]  
-                regla["tipo"]= "General"
+                regla["tipo"]= "general"
             else:
                 regla["Razon"]="Es un adverbio"
                 regla["OP1"]= ["Eliminar", " ", id, id+1]
-                regla["tipo"]= "General"
+                regla["tipo"]= "general"
             reglas.append(regla)
 
     return reglas 
