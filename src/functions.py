@@ -83,7 +83,7 @@ def one_verb(data):
                 regla={}    
                 regla["Razon"]="Exceso de verbos"
                 regla["OP1"]= ["Eliminar ", " ", id, id+1]  #->se muestran todos los verbos o solo uno??
-                regla["tipo"]= "General"
+                regla["tipo"]= "general"
                 reglas.append(regla)
 
     return reglas
