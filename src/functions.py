@@ -74,19 +74,41 @@ def null_subject(data):
 def one_verb(data):
     doc = NLP(data)
     verbs = [token.text for token in doc if token.pos_ == "VERB"] 
-    return {
-        'has_one_verb': True if len(verbs) == 1 else False, 
-        'verbs': verbs
-    }
+    reglas=[]
+    
+    for id,elem in enumerate(str(data).split(" ")):
+        if elem in verbs:
+            # si tengo mas de un verbo
+            if (len(verbs) > 1):
+                regla={}    
+                regla["Razon"]="Exceso de verbos"
+                regla["OP1"]= ["Eliminar ", " ", id, id+1]  #->se muestran todos los verbos o solo uno??
+                regla["tipo"]= "General"
+                reglas.append(regla)
+
+    return reglas
 
 def adjectives_and_adverbs(data):
     doc = NLP(data)
     adjectives = [token.text for token in doc if token.pos_ == "ADJ"]
     adverbs = [token.text for token in doc if token.pos_ == "ADV"]
-    return {
-        'adjectives': adjectives,
-        'adverbs' : adverbs
-    }
+
+    reglas=[] #->Tiene que ser lista o diccionario??
+
+    for id,elem in enumerate(str(data).split(" ")):
+        if elem in adjectives or adverbs:    
+            regla={}
+            if elem in adjectives:
+                regla["Razon"]="Es un adjetivo"
+                regla["OP1"]= ["Eliminar"," ",id, id+1]  
+                regla["tipo"]= "General"
+            else:
+                regla["Razon"]="Es un adverbio"
+                regla["OP1"]= ["Eliminar", " ", id, id+1]
+                regla["tipo"]= "General"
+            reglas.append(regla)
+
+    return reglas 
 
 def check_all(data):
     return {
