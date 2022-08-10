@@ -29,39 +29,32 @@ def passive_voice(data):
     matcher.add("PASSIVE VOICE", [pattern])
     pattern = [{"DEP": "agent"}, {"DEP": {"IN": ["det", "amod", "compound"]}, "OP": "*"}, {"DEP": "pobj"}]
     matcher.add("AGENT OF PASSIVE", [pattern])
-    pattern = [{"DEP": {"IN": ["det", "amod", "compound"]}, "OP": "*"}, {"DEP": "nsubj"}]
-    matcher.add("AGENT OF ACTIVE", [pattern])
 
-    def findPassives(doc):
-        result = ""
-        if len([token.text for token in doc if token.dep_ == "auxpass"]) >= 1:
-            matches = matcher(doc)
-            for match_id, start, end in matches:
-                string_id = NLP.vocab.strings[match_id]
-                if (string_id == "PASSIVE VOICE"):
-                    span = doc[start:end]
-                    result = span.text
-        return result
-
-    def findAgent(passive, doc):
-        result = ""
+    doc = NLP(data)
+    reglas = []
+    if len([token.text for token in doc if token.dep_ == "auxpass"]) >= 1:
         matches = matcher(doc)
         for match_id, start, end in matches:
             string_id = NLP.vocab.strings[match_id]
-            if (string_id == "AGENT OF PASSIVE" or string_id == "AGENT OF ACTIVE"):
-                span = doc[start:end]
-                result = span.text
-        return result
-
-    doc = NLP(data)
-    passive = findPassives(doc)
-    agent = findAgent(passive, doc)
-    return {
-        'has_passive_voice': True if passive != "" else False,
-        'passive_verb:': passive,
-        'has_agent': True if agent != "" else False,
-        'agent': agent
-    }
+            if (string_id == "PASSIVE VOICE"):
+                regla = {}
+                regla["Razon"] = "Passive voice"
+                regla["OP1"] = ["Convert verb to active voice", " ", start, end-1]
+                regla["tipo"] = "general"
+                reglas.append(regla)
+                if len([token.text for token in doc if token.dep_ == "agent"]) == 0:
+                    regla = {}
+                    regla["Razon"] = "Passive voice with null agent"
+                    regla["OP1"] = ["Add an agent as subject of active clause", " ", start, end-1]
+                    regla["tipo"] = "general"
+                    reglas.append(regla)
+            elif (string_id == "AGENT OF PASSIVE"):
+                regla = {}
+                regla["Razon"] = "Passive voice"
+                regla["OP1"] = ["Use by-complement as subject of active clause", " ", start, end-1]
+                regla["tipo"] = "general"
+                reglas.append(regla)
+    return reglas
 
 def null_subject(data):
     doc = NLP(data)
