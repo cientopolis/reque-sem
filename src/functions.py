@@ -10,14 +10,15 @@ def spelling_checker(data):
     for token in doc:
         if token._.get_require_spellCheck:
             check.append({
-                "Razon": "Misspelling",
-                "Palabra": str(token),
+                "Razon": "Misspelling "+str(token),
+                #"Palabra": str(token),
                 "OP1": [
                     "Reemplazar",
                     str(token._.get_suggestion_spellCheck),
                     pos,
                     pos + len(str(token))
-                ]
+                ],
+                "tipo" : "general"
             })
         pos += len(str(token))
     NLP.remove_pipe("contextual spellchecker")
@@ -39,19 +40,19 @@ def passive_voice(data):
             if (string_id == "PASSIVE VOICE"):
                 regla = {}
                 regla["Razon"] = "Passive voice"
-                regla["OP1"] = ["Convert verb to active voice", " ", start, end-1]
+                regla["OP1"] = ["Convert verb to active voice"," ", start, end-1]
                 regla["tipo"] = "general"
                 reglas.append(regla)
                 if len([token.text for token in doc if token.dep_ == "agent"]) == 0:
                     regla = {}
                     regla["Razon"] = "Passive voice with null agent"
-                    regla["OP1"] = ["Add an agent as subject of active clause", " ", start, end-1]
+                    regla["OP1"] = ["Add an agent as subject of active clause"," ", start, end-1]
                     regla["tipo"] = "general"
                     reglas.append(regla)
             elif (string_id == "AGENT OF PASSIVE"):
                 regla = {}
                 regla["Razon"] = "Passive voice"
-                regla["OP1"] = ["Use by-complement as subject of active clause", " ", start, end-1]
+                regla["OP1"] = ["Use by-complement as subject of active clause"," ", start, end-1]
                 regla["tipo"] = "general"
                 reglas.append(regla)
     return reglas
@@ -75,7 +76,7 @@ def one_verb(data):
             if (len(verbs) > 1):
                 regla={}    
                 regla["Razon"]="Exceso de verbos"
-                regla["OP1"]= ["Eliminar ", " ", id, id+1]  #->se muestran todos los verbos o solo uno??
+                regla["OP1"]= ["Eliminar "," ", id, id+1]  #id, id+1
                 regla["tipo"]= "general"
                 reglas.append(regla)
 
@@ -93,11 +94,11 @@ def adjectives_and_adverbs(data):
             regla={}
             if elem in adjectives:
                 regla["Razon"]="Es un adjetivo"
-                regla["OP1"]= ["Eliminar"," ",id, id+1]  
+                regla["OP1"]= ["Eliminar "," ",id, id+1]  
                 regla["tipo"]= "general"
             else:
                 regla["Razon"]="Es un adverbio"
-                regla["OP1"]= ["Eliminar", " ", id, id+1]
+                regla["OP1"]= ["Eliminar ", " ", id, id+1]
                 regla["tipo"]= "general"
             reglas.append(regla)
 

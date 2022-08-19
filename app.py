@@ -1,8 +1,8 @@
 from flask import Flask, jsonify, request
 from src.functions import *
-
+from flask_cors import CORS, cross_origin
 app = Flask(__name__)
-
+CORS(app)
 @app.route("/spelling", methods=["POST"])
 def spelling():
     return jsonify(
@@ -33,10 +33,25 @@ def adjectives_and_adverbs_checker():
         adjectives_and_adverbs(request.get_json()["data"])
     )
 
+def agregarElementos(arr,elem):
+    #lo unico que hace es fucionar los arreglos de cosas marcadas
+    #nada interesante por aca...
+    if not elem:
+        return arr
+    for i in elem:
+        arr.append(i)
+    return arr
+@cross_origin
 @app.route("/check_all", methods=["POST"])
 def check_all_checker():
+    obtenido=check_all(request.get_json()["texto"])
+    reglas=[]
+    reglas=agregarElementos(reglas,obtenido["spelling_checker"])
+    reglas=agregarElementos(reglas,obtenido["adjectives_and_adverbs"])
+    reglas=agregarElementos(reglas,obtenido["one_verb"])
+    reglas=agregarElementos(reglas,obtenido["passive_voice"])
     return jsonify(
-        check_all(request.get_json()["data"])
+        reglas,
     )
 
 if __name__ == '__main__':
