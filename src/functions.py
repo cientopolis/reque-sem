@@ -2,6 +2,18 @@ from src.utils.matcher import NLP
 import contextualSpellCheck
 from spacy.matcher import Matcher
 
+def buscar_palabra(doc, palabra):
+    fin = 0
+    for token in doc:
+        fin += len(token.text)
+        if token.text == palabra:
+            print(token)
+            print(fin)
+        if token.pos_ != "PUNCT":
+            fin += 1
+    inicio = fin-len(palabra)
+    return [inicio, fin]
+
 def spelling_checker(data):
     contextualSpellCheck.add_to_pipe(NLP)
     doc = NLP(data)
@@ -67,42 +79,42 @@ def null_subject(data):
 
 def one_verb(data):
     doc = NLP(data)
-    verbs = [token.text for token in doc if token.pos_ == "VERB"] 
-    reglas=[]
-    
-    for id,elem in enumerate(str(data).split(" ")):
-        if elem in verbs:
-            # si tengo mas de un verbo
-            if (len(verbs) > 1):
-                regla={}    
-                regla["Razon"]="Exceso de verbos"
-                regla["OP1"]= ["Eliminar "," ", id, id+1]  #id, id+1
-                regla["tipo"]= "general"
-                reglas.append(regla)
+    verbs = [token.text for token in doc if token.pos_ == "VERB"]
+    reglas = []
+
+    for elem in verbs:
+        pos = buscar_palabra(doc, elem)  # pos es una lista que tiene el caracter de inicio y de final
+        if len(verbs) > 1:
+            regla = {}
+            regla["Razon"] = "Exceso de verbos"
+            regla["OP1"] = ["Eliminar ", " ", pos[0], pos[1]]
+            regla["tipo"] = "general"
+            reglas.append(regla)
 
     return reglas
+
 
 def adjectives_and_adverbs(data):
     doc = NLP(data)
     adjectives = [token.text for token in doc if token.pos_ == "ADJ"]
     adverbs = [token.text for token in doc if token.pos_ == "ADV"]
+    reglas = []
+    ambos = adjectives + adverbs  # ponemos adjetivos y verbos en una lista
+    for elem in ambos:
+        regla = {}
+        pos = buscar_palabra(doc, elem)  # pos es una lista que tiene el caracter de inicio y de final
+        if elem in adjectives:
+            regla["Razon"] = "Es un adjetivo"
+            regla["OP1"] = ["Eliminar", " ", pos[0], pos[1]]
+            regla["tipo"] = "general"
+        else:
+            regla["Razon"] = "Es un adverbio"
+            regla["OP1"] = ["Eliminar", " ", pos[0], pos[1]]
+            regla["tipo"] = "general"
+        reglas.append(regla)
 
-    reglas=[] #->Tiene que ser lista o diccionario??
+    return reglas
 
-    for id,elem in enumerate(str(data).split(" ")):
-        if elem in adjectives or adverbs:    
-            regla={}
-            if elem in adjectives:
-                regla["Razon"]="Es un adjetivo"
-                regla["OP1"]= ["Eliminar "," ",id, id+1]  
-                regla["tipo"]= "general"
-            else:
-                regla["Razon"]="Es un adverbio"
-                regla["OP1"]= ["Eliminar ", " ", id, id+1]
-                regla["tipo"]= "general"
-            reglas.append(regla)
-
-    return reglas 
 
 def check_all(data):
     return {
