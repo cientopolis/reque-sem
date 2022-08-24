@@ -6,9 +6,10 @@ def buscar_palabra(doc, palabra):
     fin = 0
     for token in doc:
         fin += len(token.text)
-        if token.text == palabra:
+        if token.text == palabra: #ACA HAY QUE CORTAR
             print(token)
             print(fin)
+            break
         if token.pos_ != "PUNCT":
             fin += 1
     inicio = fin-len(palabra)
@@ -105,7 +106,7 @@ def adjectives_and_adverbs(data):
         pos = buscar_palabra(doc, elem)  # pos es una lista que tiene el caracter de inicio y de final
         if elem in adjectives:
             regla["Razon"] = "Es un adjetivo"
-            regla["OP1"] = ["Eliminar", " ", pos[0], pos[1]]
+            regla["OP1"] = ["Eliminar", " ", pos[0], pos[1]] #MIRAR COMENTARIO DE BUSCAR_PALABRA
             regla["tipo"] = "general"
         else:
             regla["Razon"] = "Es un adverbio"
