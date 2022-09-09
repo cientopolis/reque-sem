@@ -33,7 +33,7 @@ def spelling_checker(data):
                 ],
                 "tipo" : "general"
             })
-        pos += len(str(token))
+        pos += len(str(token)) + 1
     NLP.remove_pipe("contextual spellchecker")
     return check
 
