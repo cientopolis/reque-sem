@@ -37,6 +37,7 @@ spacy-legacy==3.0.9
 spacy-loggers==1.0.2
 spacy-transformers==1.1.5
 srsly==2.4.3
+textblob==0.17.1
 thinc==8.0.15
 tokenizers==0.12.1
 torch==1.11.0
@@ -47,3 +48,8 @@ typing_extensions==4.2.0
 urllib3==1.26.9
 wasabi==0.9.1
 Werkzeug==2.1.2
+appdirs==1.4.4	
+asgiref==3.5.1	
+autocorrect==2.6.1
+isodate==0.6.1
+nltk==3.7

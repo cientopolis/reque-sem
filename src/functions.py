@@ -1,7 +1,8 @@
 from src.utils.matcher import NLP
 import contextualSpellCheck
 from spacy.matcher import Matcher
-
+from textblob import Word
+from requests.structures import CaseInsensitiveDict
 def buscar_palabra(doc, palabra):
     fin = 0
     for token in doc:
@@ -17,7 +18,10 @@ def buscar_palabra(doc, palabra):
 
 def spelling_checker(data):
     contextualSpellCheck.add_to_pipe(NLP)
-    doc = NLP(data)
+    try:
+        doc = NLP(data)
+    except:
+        return []
     check = []
     pos = 1
     for token in doc:
@@ -44,7 +48,10 @@ def passive_voice(data):
     pattern = [{"DEP": "agent"}, {"DEP": {"IN": ["det", "amod", "compound"]}, "OP": "*"}, {"DEP": "pobj"}]
     matcher.add("AGENT OF PASSIVE", [pattern])
 
-    doc = NLP(data)
+    try:
+        doc = NLP(data)
+    except:
+        return []
     reglas = []
     if len([token.text for token in doc if token.dep_ == "auxpass"]) >= 1:
         matches = matcher(doc)
@@ -71,15 +78,42 @@ def passive_voice(data):
     return reglas
 
 def null_subject(data):
-    doc = NLP(data)
+    try:
+        doc = NLP(data)
+    except:
+        return []
     subjects = [token.text for token in doc if token.dep_ == "nsubj"]
     return {
         'has_null_subject': True if subjects == [] else False, 
         'subjects': subjects
     }
+def null_subjectOracion(data):
+    inicio=0
+    fin=-1
+    oracion=""
+    pos=0
+    reglas=[]
+    print("ORACION: Joa desafia las normas. No tiene sujeto? RTA: "+str(null_subject("Joa desafia las normas.")))
+    for i in data:
+        if i == ".":
+            fin=pos
+            if null_subject(oracion)["has_null_subject"]:
+                regla = {}
+                regla["Razon"] = "Oracion sin sujeto"
+                regla["OP1"] = ["Eliminar ", " ", inicio, fin - 5]
+                regla["tipo"] = "general"
+                reglas.append(regla)
+            oracion=""
+            inicio=fin + 1 
+        pos+=1
+        oracion+=i
+    return reglas
 
 def one_verb(data):
-    doc = NLP(data)
+    try:
+        doc = NLP(data)
+    except:
+        return []
     verbs = [token.text for token in doc if token.pos_ == "VERB"]
     reglas = []
 
@@ -96,7 +130,10 @@ def one_verb(data):
 
 
 def adjectives_and_adverbs(data):
-    doc = NLP(data)
+    try:
+        doc = NLP(data)
+    except:
+        return []
     adjectives = [token.text for token in doc if token.pos_ == "ADJ"]
     adverbs = [token.text for token in doc if token.pos_ == "ADV"]
     reglas = []
@@ -115,7 +152,31 @@ def adjectives_and_adverbs(data):
         reglas.append(regla)
 
     return reglas
-
+def check_word_spelling(word):
+    word = Word(word)
+    result = word.spellcheck()
+    return result
+def diccion(texto):
+    #Ejemplo con multiOpcion variable
+    #La idea es encontrar horrores de ortografia y dar un conjunto
+    #de soluciones para corregir dicho error
+    palabras= texto.split()
+    palabras = [palabra.lower() for palabra in palabras]
+    pos=0
+    reglas=[]
+    for palabra in palabras:
+        corr=check_word_spelling(palabra)
+        if corr[0][0] != palabra:
+            regla={}
+            regla["Razon"]="Misspeling"
+            z=1 #debe empezar en 1
+            for i in corr:
+                regla["OP"+str(z)]= ["Replace",i[0],pos,pos+len(palabra)]#Las opciones varian
+                z=z+1
+            regla["tipo"]= "general"
+            reglas.append(regla)
+        pos=pos+len(palabra)+1
+    return reglas
 
 def check_all(data):
     return {

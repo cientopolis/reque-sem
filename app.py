@@ -1,12 +1,13 @@
 from flask import Flask, jsonify, request
 from src.functions import *
 from flask_cors import CORS, cross_origin
+
 app = Flask(__name__)
 CORS(app)
 @app.route("/spelling", methods=["POST"])
 def spelling():
     return jsonify(
-        spelling_checker(request.get_json()["data"])
+        diccion(request.get_json()["texto"])
     )
 
 @app.route("/passive_voice", methods=["POST"])
@@ -18,7 +19,7 @@ def passive_voice_checker():
 @app.route("/null_subject", methods=["POST"])
 def null_subject_checker():
     return jsonify(
-        null_subject(request.get_json()["data"])
+        null_subjectOracion(request.get_json()["data"])
     )
 
 @app.route("/one_verb", methods=["POST"])
@@ -41,15 +42,14 @@ def agregarElementos(arr,elem):
     for i in elem:
         arr.append(i)
     return arr
-@cross_origin
 @app.route("/check_all", methods=["POST"])
 def check_all_checker():
     obtenido=check_all(request.get_json()["texto"])
     reglas=[]
-    reglas=agregarElementos(reglas,obtenido["spelling_checker"])
+    #reglas=agregarElementos(reglas,obtenido["spelling_checker"])
     reglas=agregarElementos(reglas,obtenido["adjectives_and_adverbs"])
     reglas=agregarElementos(reglas,obtenido["one_verb"])
-    reglas=agregarElementos(reglas,obtenido["passive_voice"])
+    #reglas=agregarElementos(reglas,obtenido["passive_voice"])
     return jsonify(
         reglas,
     )
