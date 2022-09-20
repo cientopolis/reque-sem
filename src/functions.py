@@ -41,40 +41,42 @@ def spelling_checker(data):
     NLP.remove_pipe("contextual spellchecker")
     return check
 
-def passive_voice(data):
-    matcher = Matcher(NLP.vocab)
-    pattern = [{"DEP": "auxpass"}, {"DEP": {"IN": ["neg", "advmod"]}, "OP": "*"}, {"DEP": "ROOT"}]
-    matcher.add("PASSIVE VOICE", [pattern])
-    pattern = [{"DEP": "agent"}, {"DEP": {"IN": ["det", "amod", "compound"]}, "OP": "*"}, {"DEP": "pobj"}]
-    matcher.add("AGENT OF PASSIVE", [pattern])
+def buscar_dependencia(doc, dep):
+    inicio = 0
+    for token in doc:
+        if token.dep_ != dep:
+            inicio += len(token.text)
+            if token.pos_ != "PUNCT":
+                inicio += 1
+        else:
+            return inicio + 1
 
+def passive_voice(data):
     try:
         doc = NLP(data)
     except:
         return []
     reglas = []
-    if len([token.text for token in doc if token.dep_ == "auxpass"]) >= 1:
-        matches = matcher(doc)
-        for match_id, start, end in matches:
-            string_id = NLP.vocab.strings[match_id]
-            if (string_id == "PASSIVE VOICE"):
-                regla = {}
-                regla["Razon"] = "Passive voice"
-                regla["OP1"] = ["Convert verb to active voice"," ", start, end-1]
-                regla["tipo"] = "general"
-                reglas.append(regla)
-                if len([token.text for token in doc if token.dep_ == "agent"]) == 0:
-                    regla = {}
-                    regla["Razon"] = "Passive voice with null agent"
-                    regla["OP1"] = ["Add an agent as subject of active clause"," ", start, end-1]
-                    regla["tipo"] = "general"
-                    reglas.append(regla)
-            elif (string_id == "AGENT OF PASSIVE"):
-                regla = {}
-                regla["Razon"] = "Passive voice"
-                regla["OP1"] = ["Use by-complement as subject of active clause"," ", start, end-1]
-                regla["tipo"] = "general"
-                reglas.append(regla)
+    
+    matcher = Matcher(nlp.vocab)
+    pattern = [{"DEP": "aux"}, {"DEP": "ROOT"}]
+    matcher.add("PASSIVE VOICE", [pattern])
+    matches = matcher(doc)
+    
+    if len(matches) >= 1:
+        posInicio = 0
+        posFin = 0
+        for token in doc:
+            if token.dep_ == "aux":
+                posInicio = buscar_dependencia(doc, "aux")
+            if token.dep_ == "ROOT":
+                posFin = buscar_dependencia(doc, "ROOT") + len(token.text) - 1
+        regla = {}
+        regla["texto"] = o
+        regla["Razon"] = "voz pasiva"
+        regla["OP1"] = ["Use un verbo en voz activa", " ", posInicio, posFin]
+        regla["tipo"] = "general"
+        reglas.append(regla)    
     return reglas
 
 def null_subject(data):
