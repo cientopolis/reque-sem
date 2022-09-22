@@ -90,25 +90,13 @@ def null_subject(data):
         'subjects': subjects
     }
 def null_subjectOracion(data):
-    inicio=0
-    fin=-1
-    oracion=""
-    pos=0
     reglas=[]
-    print("ORACION: Joa desafia las normas. No tiene sujeto? RTA: "+str(null_subject("Joa desafia las normas.")))
-    for i in data:
-        if i == ".":
-            fin=pos
-            if null_subject(oracion)["has_null_subject"]:
-                regla = {}
-                regla["Razon"] = "Oracion sin sujeto"
-                regla["OP1"] = ["Eliminar ", " ", inicio, fin - 5]
-                regla["tipo"] = "general"
-                reglas.append(regla)
-            oracion=""
-            inicio=fin + 1 
-        pos+=1
-        oracion+=i
+    if null_subject(data)["has_null_subject"]:
+        regla = {}
+        regla["Razon"] = "Oracion sin sujeto"
+        regla["OP1"] = ["Eliminar ", " ", 0, 0]
+        regla["tipo"] = "general"
+        reglas.append(regla)
     return reglas
 
 def one_verb(data):
