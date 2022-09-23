@@ -53,3 +53,4 @@ asgiref==3.5.1
 autocorrect==2.6.1
 isodate==0.6.1
 nltk==3.7
+Flask-Cors==3.0.10
