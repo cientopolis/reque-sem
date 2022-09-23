@@ -58,7 +58,7 @@ def passive_voice(data):
         return []
     reglas = []
     
-    matcher = Matcher(nlp.vocab)
+    matcher = Matcher(NLP.vocab)
     pattern = [{"DEP": "aux"}, {"DEP": "ROOT"}]
     matcher.add("PASSIVE VOICE", [pattern])
     matches = matcher(doc)
