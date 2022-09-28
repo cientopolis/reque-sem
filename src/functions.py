@@ -58,6 +58,7 @@ def passive_voice(data):
         return []
     reglas = []
     
+    NLP = spacy.load("es_dep_news_trf")
     matcher = Matcher(NLP.vocab)
     pattern = [{"DEP": "aux"}, {"DEP": "ROOT"}]
     matcher.add("PASSIVE VOICE", [pattern])
