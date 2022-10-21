@@ -90,35 +90,16 @@ def null_subject(data):
         'has_null_subject': True if subjects == [] else False, 
         'subjects': subjects
     }
-def null_subjectOracion(data):
-    reglas=[]
-    if null_subject(data)["has_null_subject"]:
-        regla = {}
-        regla["Razon"] = "Oracion sin sujeto"
-        regla["OP1"] = ["Eliminar ", " ", 0, 0]
-        regla["tipo"] = "general"
-        reglas.append(regla)
-    return reglas
 
-def one_verb(data):
-    try:
-        doc = NLP(data)
-    except:
-        return []
-    verbs = [token.text for token in doc if token.pos_ == "VERB"]
-    reglas = []
 
-    for elem in verbs:
-        pos = buscar_palabra(doc, elem)  # pos es una lista que tiene el caracter de inicio y de final
-        if len(verbs) > 1:
-            regla = {}
-            regla["Razon"] = "Exceso de verbos"
-            regla["OP1"] = ["Eliminar ", " ", pos[0], pos[1]]
-            regla["tipo"] = "general"
-            reglas.append(regla)
-
-    return reglas
-
+def one_verb_checker(texto):
+    doc = NLP(texto)
+    verbs = [token.text for token in doc if token.pos_ == "VERB"] 
+    return {
+        'has_more_verb': False if len(verbs) == 1 else True, 
+        'data': verbs
+        }
+    
 
 def adjectives_and_adverbs(data):
     try:
@@ -168,6 +149,39 @@ def diccion(texto):
             reglas.append(regla)
         pos=pos+len(palabra)+1
     return reglas
+def SepararOraciones(texto):
+    fin_de_Oracion=0
+    lineaActual=0
+    oracion=""
+    passive_voiceR=[]
+    null_subjectR=[]
+    one_verbR=[]
+    adjectives_and_adverbsR=[]
+    for i in texto:
+        oracion+=i
+        if i == ".":
+            lineaActual=lineaActual+1
+            res=null_subject(oracion)
+            resVerb=one_verb_checker(oracion)
+            if res["has_null_subject"]:
+                regla={}
+                regla["has_null_subject"]= res["has_null_subject"]
+                regla["Oracion"]=lineaActual
+                null_subjectR.append(regla)
+            if resVerb["has_more_verb"]:
+                regla={}
+                regla["has_more_verb"]= resVerb["has_more_verb"]
+                regla["Oracion"]=lineaActual
+                one_verbR.append(regla)
+            oracion=""
+            #encontre fin de oracion
+            #llamo a las funciones
+            #agrego las rta al esquema de devolucion marcando la linea
+            #aumento nro de line
+        
+    return{
+        "null_subject" : null_subjectR
+    }
 
 def check_all(data):
     return {
