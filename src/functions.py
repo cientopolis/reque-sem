@@ -1,6 +1,7 @@
 from src.utils.matcher import NLP
 import contextualSpellCheck
 from spacy.matcher import Matcher
+import spacy
 from textblob import Word
 from requests.structures import CaseInsensitiveDict
 def buscar_palabra(doc, palabra):
@@ -180,7 +181,9 @@ def SepararOraciones(texto):
             #aumento nro de line
         
     return{
-        "null_subject" : null_subjectR
+        "null_subject" : null_subjectR,
+        "has_more_verb" : one_verbR
+
     }
 
 def check_all(data):
@@ -188,6 +191,6 @@ def check_all(data):
         'spelling_checker': spelling_checker(data),
         'passive_voice': passive_voice(data),
         'null_subject': null_subject(data),
-        'one_verb': one_verb(data),
+        'one_verb': one_verb_checker(data),
         'adjectives_and_adverbs': adjectives_and_adverbs(data)
     }
