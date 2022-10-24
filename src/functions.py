@@ -4,82 +4,49 @@ from spacy.matcher import Matcher
 import spacy
 from textblob import Word
 from requests.structures import CaseInsensitiveDict
-def buscar_palabra(doc, palabra):
-    fin = 0
-    for token in doc:
-        fin += len(token.text)
-        if token.text == palabra: #ACA HAY QUE CORTAR
-            print(token)
-            print(fin)
-            break
-        if token.pos_ != "PUNCT":
-            fin += 1
-    inicio = fin-len(palabra)
-    return [inicio, fin]
 
-def spelling_checker(data):
-    contextualSpellCheck.add_to_pipe(NLP)
-    try:
-        doc = NLP(data)
-    except:
-        return []
-    check = []
-    pos = 1
-    for token in doc:
-        if token._.get_require_spellCheck:
-            check.append({
-                "Razon": "Misspelling "+str(token),
-                #"Palabra": str(token),
-                "OP1": [
-                    "Reemplazar",
-                    str(token._.get_suggestion_spellCheck),
-                    pos,
-                    pos + len(str(token))
-                ],
-                "tipo" : "general"
-            })
-        pos += len(str(token)) + 1
-    NLP.remove_pipe("contextual spellchecker")
-    return check
-
-def buscar_dependencia(doc, dep):
-    inicio = 0
-    for token in doc:
-        if token.dep_ != dep:
-            inicio += len(token.text)
-            if token.pos_ != "PUNCT":
-                inicio += 1
-        else:
-            return inicio + 1
-
-def passive_voice(data):
-    try:
-        doc = NLP(data)
-    except:
-        return []
-    reglas = []
+def passive_voice_checker(texto):
     
-    NLP = spacy.load("es_dep_news_trf")
     matcher = Matcher(NLP.vocab)
-    pattern = [{"DEP": "aux"}, {"DEP": "ROOT"}]
+    pattern = [{"DEP": "auxpass"}, {"DEP": {"IN": ["neg", "advmod"]}, "OP": "*"}, {"DEP": "ROOT"}]
     matcher.add("PASSIVE VOICE", [pattern])
-    matches = matcher(doc)
-    
-    if len(matches) >= 1:
-        posInicio = 0
-        posFin = 0
-        for token in doc:
-            if token.dep_ == "aux":
-                posInicio = buscar_dependencia(doc, "aux")
-            if token.dep_ == "ROOT":
-                posFin = buscar_dependencia(doc, "ROOT") + len(token.text) - 1
-        regla = {}
-        regla["texto"] = o
-        regla["Razon"] = "voz pasiva"
-        regla["OP1"] = ["Use un verbo en voz activa", " ", posInicio, posFin]
-        regla["tipo"] = "general"
-        reglas.append(regla)    
-    return reglas
+    pattern = [{"DEP": "agent"}, {"DEP": {"IN": ["det", "amod", "compound"]}, "OP": "*"}, {"DEP": "pobj"}]
+    matcher.add("AGENT OF PASSIVE", [pattern])
+    pattern = [{"DEP": {"IN": ["det", "amod", "compound"]}, "OP": "*"}, {"DEP": "nsubj"}]
+    matcher.add("AGENT OF ACTIVE", [pattern])
+
+    def findPassives(doc):
+        result = ""
+        if len([token.text for token in doc if token.dep_ == "auxpass"]) >= 1:
+            matches = matcher(doc)
+            for match_id, start, end in matches:
+                string_id = NLP.vocab.strings[match_id]
+                if (string_id == "PASSIVE VOICE"):
+                    span = doc[start:end]
+                    result = span.text
+        return result
+
+    def findAgent(passive, doc):
+        result = ""
+        matches = matcher(doc)
+        for match_id, start, end in matches:
+            string_id = NLP.vocab.strings[match_id]
+            if (string_id == "AGENT OF PASSIVE" or string_id == "AGENT OF ACTIVE"):
+                span = doc[start:end]
+                result = span.text
+        return result
+
+    doc = NLP(texto)
+    passive = findPassives(doc)
+    agent = findAgent(passive, doc)
+    return (
+            {
+            'has_passive_voice': True if passive != "" else False,
+            'passive_verb:': passive,
+            'has_agent': True if agent != "" else False,
+            'agent': agent
+            }
+        )
 
 def null_subject(data):
     try:
@@ -101,30 +68,18 @@ def one_verb_checker(texto):
         'data': verbs
         }
     
-
-def adjectives_and_adverbs(data):
-    try:
-        doc = NLP(data)
-    except:
-        return []
+def adjectives_and_adverbs_checker(text):
+    doc = NLP(text)
     adjectives = [token.text for token in doc if token.pos_ == "ADJ"]
     adverbs = [token.text for token in doc if token.pos_ == "ADV"]
-    reglas = []
-    ambos = adjectives + adverbs  # ponemos adjetivos y verbos en una lista
-    for elem in ambos:
-        regla = {}
-        pos = buscar_palabra(doc, elem)  # pos es una lista que tiene el caracter de inicio y de final
-        if elem in adjectives:
-            regla["Razon"] = "Es un adjetivo"
-            regla["OP1"] = ["Eliminar", " ", pos[0], pos[1]] #MIRAR COMENTARIO DE BUSCAR_PALABRA
-            regla["tipo"] = "general"
-        else:
-            regla["Razon"] = "Es un adverbio"
-            regla["OP1"] = ["Eliminar", " ", pos[0], pos[1]]
-            regla["tipo"] = "general"
-        reglas.append(regla)
-
-    return reglas
+    hasAdjOrAdv = adjectives or adverbs
+    return (
+        {
+            'hasAdjOrAdv' : hasAdjOrAdv,
+            'adjectives': adjectives,
+            'adverbs' : adverbs
+        }
+    )
 def check_word_spelling(word):
     word = Word(word)
     result = word.spellcheck()
@@ -164,16 +119,28 @@ def SepararOraciones(texto):
             lineaActual=lineaActual+1
             res=null_subject(oracion)
             resVerb=one_verb_checker(oracion)
-            if res["has_null_subject"]:
+            resAdjAdv=adjectives_and_adverbs_checker(oracion)
+            resPassive=passive_voice_checker(oracion)
+            if res["has_null_subject"] and not resPassive["has_passive_voice"]:
                 regla={}
                 regla["has_null_subject"]= res["has_null_subject"]
                 regla["Oracion"]=lineaActual
                 null_subjectR.append(regla)
-            if resVerb["has_more_verb"]:
+            if resVerb["has_more_verb"] and not resPassive["has_passive_voice"]:
                 regla={}
                 regla["has_more_verb"]= resVerb["has_more_verb"]
                 regla["Oracion"]=lineaActual
                 one_verbR.append(regla)
+            if resAdjAdv['hasAdjOrAdv']:
+                regla={}
+                regla["hasAdjOrAdv"]= resAdjAdv["hasAdjOrAdv"]
+                regla["Oracion"]=lineaActual
+                adjectives_and_adverbsR.append(regla)
+            if resPassive["has_passive_voice"]:
+                regla={}
+                regla["has_passive_voice"]= resPassive["has_passive_voice"]
+                regla["Oracion"]=lineaActual
+                passive_voiceR.append(regla)
             oracion=""
             #encontre fin de oracion
             #llamo a las funciones
@@ -182,15 +149,7 @@ def SepararOraciones(texto):
         
     return{
         "null_subject" : null_subjectR,
-        "has_more_verb" : one_verbR
-
-    }
-
-def check_all(data):
-    return {
-        'spelling_checker': spelling_checker(data),
-        'passive_voice': passive_voice(data),
-        'null_subject': null_subject(data),
-        'one_verb': one_verb_checker(data),
-        'adjectives_and_adverbs': adjectives_and_adverbs(data)
+        "has_more_verb" : one_verbR,
+        'hasAdjOrAdv' : adjectives_and_adverbsR,
+        "has_passive_voice" : passive_voiceR
     }

@@ -47,7 +47,11 @@ def dicc():
         'data' : reglas
         }
     )
-
+@cross_origin
+@app.route("/passive_voice", methods=["POST"])
+def passive_voice():
+    texto=request.get_json()["data"]
+    return passive_voice_checker(texto)
                        
 def agregarElementos(arr,elem):
     #lo unico que hace es fucionar los arreglos de cosas marcadas
