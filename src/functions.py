@@ -6,9 +6,8 @@ from textblob import Word
 from requests.structures import CaseInsensitiveDict
 
 def passive_voice_checker(texto):
-    
     matcher = Matcher(NLP.vocab)
-    pattern = [{"DEP": "auxpass"}, {"DEP": {"IN": ["neg", "advmod"]}, "OP": "*"}, {"DEP": "ROOT"}]
+    pattern = [{"DEP": {"IN": ["auxpass", "aux"]}, "OP": "+"}, {"DEP": {"IN": ["neg", "advmod", "auxpass"]}, "OP": "*"}, {"DEP": {"IN": ["ROOT", "acomp"]}, "OP": "+"}]
     matcher.add("PASSIVE VOICE", [pattern])
     pattern = [{"DEP": "agent"}, {"DEP": {"IN": ["det", "amod", "compound"]}, "OP": "*"}, {"DEP": "pobj"}]
     matcher.add("AGENT OF PASSIVE", [pattern])
@@ -27,6 +26,8 @@ def passive_voice_checker(texto):
         return result
 
     def findAgent(passive, doc):
+        #for token in doc:
+        #    print(token.text, "\t" + token.dep_, token.head.text, token.head.pos_)
         result = ""
         matches = matcher(doc)
         for match_id, start, end in matches:

@@ -10,6 +10,7 @@ import json
 from textblob import Word
 from requests.structures import CaseInsensitiveDict
 import spacy
+from src.functions import passive_voice_checker as pvc
 from spacy.matcher import Matcher
 NLP = spacy.load("en_core_web_trf")
 app= Flask(__name__)
@@ -50,8 +51,9 @@ def dicc():
 @cross_origin
 @app.route("/passive_voice", methods=["POST"])
 def passive_voice():
+    
     texto=request.get_json()["data"]
-    return passive_voice_checker(texto)
+    return pvc(texto)
                        
 def agregarElementos(arr,elem):
     #lo unico que hace es fucionar los arreglos de cosas marcadas
