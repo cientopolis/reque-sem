@@ -73,6 +73,8 @@ def adjectives_and_adverbs_checker(text):
     doc = NLP(text)
     adjectives = [token.text for token in doc if token.pos_ == "ADJ"]
     adverbs = [token.text for token in doc if token.pos_ == "ADV"]
+    print(adjectives)
+    print(adverbs)
     hasAdjOrAdv = adjectives or adverbs
     return (
         {
@@ -81,10 +83,12 @@ def adjectives_and_adverbs_checker(text):
             'adverbs' : adverbs
         }
     )
+    
 def check_word_spelling(word):
     word = Word(word)
     result = word.spellcheck()
     return result
+
 def diccion(texto):
     #Ejemplo con multiOpcion variable
     #La idea es encontrar horrores de ortografia y dar un conjunto
