@@ -70,17 +70,40 @@ def one_verb_checker(texto):
         }
     
 def adjectives_and_adverbs_checker(text):
+    matcher = Matcher(NLP.vocab)
+    pattern = [{"DEP": {"IN": ["amod", "nmod"]}, "OP": "+"}]
+    matcher.add("ADJECTIVES", [pattern])
+    pattern = [{"DEP": {"IN": ["advmod", "npadvmod"]}, "OP": "+"}]
+    matcher.add("ADVERBS", [pattern])
     doc = NLP(text)
-    adjectives = [token.text for token in doc if token.pos_ == "ADJ"]
-    adverbs = [token.text for token in doc if token.pos_ == "ADV"]
-    print(adjectives)
-    print(adverbs)
-    hasAdjOrAdv = adjectives or adverbs
+    
+    def findAdjectives(doc):
+        result = ""
+        matches = matcher(doc)
+        for match_id, start, end in matches:
+            string_id = NLP.vocab.strings[match_id]
+            if (string_id == "ADJECTIVES"):
+                span = doc[start:end]
+                result = span.text
+        return result
+    
+    def findAdverbs(doc):
+        result = ""
+        matches = matcher(doc)
+        for match_id, start, end in matches:
+            string_id = NLP.vocab.strings[match_id]
+            if (string_id == "ADVERBS"):
+                span = doc[start:end]
+                result = span.text
+        return result
+    
+    adjectives = findAdjectives(doc)
+    adverbs = findAdverbs(doc)
     return (
         {
-            'hasAdjOrAdv' : hasAdjOrAdv,
-            'adjectives': adjectives,
-            'adverbs' : adverbs
+            'hasAdjOrAdv' : True if len(adjectives or adverbs) > 0 else False,
+            'adjectives': adjectives if adjectives else None,
+            'adverbs' : adverbs if adverbs else None
         }
     )
     
