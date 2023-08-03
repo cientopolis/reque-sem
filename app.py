@@ -34,11 +34,12 @@ def adjectives_and_adverbs_checker():
     doc = NLP(request.get_json()["data"])
     adjectives = [token.text for token in doc if token.pos_ == "ADJ"]
     adverbs = [token.text for token in doc if token.pos_ == "ADV"]
-    return jsonify(
-        {
-        'data' : adverbs + adjectives
+    return jsonify({
+        'data' : {
+            "adverbs": adverbs,
+            "adjectives": adjectives
         }
-    )
+    })
 @app.route("/dict", methods=["POST"])
 def dicc():
     texto=request.get_json()["data"]
