@@ -11,6 +11,7 @@ from textblob import Word
 from requests.structures import CaseInsensitiveDict
 import spacy
 from src.functions import passive_voice_checker as pvc
+from src.functions import adjectives_and_adverbs_checker as aac
 from spacy.matcher import Matcher
 NLP = spacy.load("en_core_web_trf")
 app= Flask(__name__)
@@ -40,6 +41,11 @@ def adjectives_and_adverbs_checker():
             "adjectives": adjectives
         }
     })
+    #return aac(request.get_json()["data"])
+    #doc = NLP(request.get_json()["data"])
+    #adjectives = [token.text for token in doc if token.pos_ == "ADJ"]
+    #adverbs = [token.text for token in doc if token.pos_ == "ADV"]
+    #return jsonify({'data' : adverbs + adjectives})
 @app.route("/dict", methods=["POST"])
 def dicc():
     texto=request.get_json()["data"]
