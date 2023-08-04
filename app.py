@@ -38,7 +38,8 @@ def adjectives_and_adverbs_checker():
     return jsonify({
         'data' : {
             "adverbs": adverbs,
-            "adjectives": adjectives
+            "adjectives": adjectives,
+            "hasAdjOrAdv": adverbs or adjectives
         }
     })
     #return aac(request.get_json()["data"])
